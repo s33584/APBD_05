@@ -32,50 +32,8 @@ namespace LegacyRenewalApp
                 notes += "minimum discounted subtotal applied; ";
             }
 
-            decimal supportFee = 0m;
-            if (includePremiumSupport)
-            {
-                if (normalizedPlanCode == "START")
-                {
-                    supportFee = 250m;
-                }
-                else if (normalizedPlanCode == "PRO")
-                {
-                    supportFee = 400m;
-                }
-                else if (normalizedPlanCode == "ENTERPRISE")
-                {
-                    supportFee = 700m;
-                }
-
-                notes += "premium support included; ";
-            }
-
-            decimal paymentFee = 0m;
-            if (normalizedPaymentMethod == "CARD")
-            {
-                paymentFee = (subtotalAfterDiscount + supportFee) * 0.02m;
-                notes += "card payment fee; ";
-            }
-            else if (normalizedPaymentMethod == "BANK_TRANSFER")
-            {
-                paymentFee = (subtotalAfterDiscount + supportFee) * 0.01m;
-                notes += "bank transfer fee; ";
-            }
-            else if (normalizedPaymentMethod == "PAYPAL")
-            {
-                paymentFee = (subtotalAfterDiscount + supportFee) * 0.035m;
-                notes += "paypal fee; ";
-            }
-            else if (normalizedPaymentMethod == "INVOICE")
-            {
-                paymentFee = 0m;
-                notes += "invoice payment; ";
-            }
-            else
-            {
-                throw new ArgumentException("Unsupported payment method");
-            }
+            decimal supportFee = CalculateSupportFee(includePremiumSupport, normalizedPlanCode, ref notes);
+            decimal paymentFee = CalculatePaymentFee(normalizedPaymentMethod, subtotalAfterDiscount, supportFee, ref notes);
 
             decimal taxRate = 0.20m;
             if (customer.Country == "Poland")
@@ -251,6 +209,66 @@ namespace LegacyRenewalApp
             }
 
             return discountAmount;
+        }
+
+        private static decimal CalculateSupportFee(bool includePremiumSupport, string normalizedPlanCode, ref string notes)
+        {
+            if (!includePremiumSupport)
+            {
+                return 0m;
+            }
+
+            decimal supportFee = 0m;
+            if (normalizedPlanCode == "START")
+            {
+                supportFee = 250m;
+            }
+            else if (normalizedPlanCode == "PRO")
+            {
+                supportFee = 400m;
+            }
+            else if (normalizedPlanCode == "ENTERPRISE")
+            {
+                supportFee = 700m;
+            }
+
+            notes += "premium support included; ";
+            return supportFee;
+        }
+
+        private static decimal CalculatePaymentFee(
+            string normalizedPaymentMethod,
+            decimal subtotalAfterDiscount,
+            decimal supportFee,
+            ref string notes)
+        {
+            decimal baseForPaymentFee = subtotalAfterDiscount + supportFee;
+
+            if (normalizedPaymentMethod == "CARD")
+            {
+                notes += "card payment fee; ";
+                return baseForPaymentFee * 0.02m;
+            }
+
+            if (normalizedPaymentMethod == "BANK_TRANSFER")
+            {
+                notes += "bank transfer fee; ";
+                return baseForPaymentFee * 0.01m;
+            }
+
+            if (normalizedPaymentMethod == "PAYPAL")
+            {
+                notes += "paypal fee; ";
+                return baseForPaymentFee * 0.035m;
+            }
+
+            if (normalizedPaymentMethod == "INVOICE")
+            {
+                notes += "invoice payment; ";
+                return 0m;
+            }
+
+            throw new ArgumentException("Unsupported payment method");
         }
     }
 }

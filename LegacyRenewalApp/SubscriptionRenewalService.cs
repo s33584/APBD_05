@@ -55,17 +55,7 @@ namespace LegacyRenewalApp
                 finalAmount,
                 notes);
 
-            LegacyBillingGateway.SaveInvoice(invoice);
-
-            if (!string.IsNullOrWhiteSpace(customer.Email))
-            {
-                string subject = "Subscription renewal invoice";
-                string body =
-                    $"Hello {customer.FullName}, your renewal for plan {normalizedPlanCode} " +
-                    $"has been prepared. Final amount: {invoice.FinalAmount:F2}.";
-
-                LegacyBillingGateway.SendEmail(customer.Email, subject, body);
-            }
+            PersistInvoiceAndNotifyCustomer(invoice, customer, normalizedPlanCode);
 
             return invoice;
         }
@@ -313,6 +303,26 @@ namespace LegacyRenewalApp
                 Notes = notes.Trim(),
                 GeneratedAt = DateTime.UtcNow
             };
+        }
+
+        private static void PersistInvoiceAndNotifyCustomer(
+            RenewalInvoice invoice,
+            Customer customer,
+            string normalizedPlanCode)
+        {
+            LegacyBillingGateway.SaveInvoice(invoice);
+
+            if (string.IsNullOrWhiteSpace(customer.Email))
+            {
+                return;
+            }
+
+            string subject = "Subscription renewal invoice";
+            string body =
+                $"Hello {customer.FullName}, your renewal for plan {normalizedPlanCode} " +
+                $"has been prepared. Final amount: {invoice.FinalAmount:F2}.";
+
+            LegacyBillingGateway.SendEmail(customer.Email, subject, body);
         }
     }
 }

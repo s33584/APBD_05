@@ -14,19 +14,12 @@ namespace LegacyRenewalApp
         {
             ValidateInputs(customerId, planCode, seatCount, paymentMethod);
 
-            string normalizedPlanCode = planCode.Trim().ToUpperInvariant();
-            string normalizedPaymentMethod = paymentMethod.Trim().ToUpperInvariant();
+            string normalizedPlanCode = NormalizeCode(planCode);
+            string normalizedPaymentMethod = NormalizeCode(paymentMethod);
 
-            var customerRepository = new CustomerRepository();
-            var planRepository = new SubscriptionPlanRepository();
-
-            var customer = customerRepository.GetById(customerId);
-            var plan = planRepository.GetByCode(normalizedPlanCode);
-
-            if (!customer.IsActive)
-            {
-                throw new InvalidOperationException("Inactive customers cannot renew subscriptions");
-            }
+            var customer = GetCustomer(customerId);
+            var plan = GetPlan(normalizedPlanCode);
+            EnsureCustomerIsActive(customer);
 
             decimal baseAmount = (plan.MonthlyPricePerSeat * seatCount * 12m) + plan.SetupFee;
             decimal discountAmount = 0m;
@@ -219,6 +212,31 @@ namespace LegacyRenewalApp
             if (string.IsNullOrWhiteSpace(paymentMethod))
             {
                 throw new ArgumentException("Payment method is required");
+            }
+        }
+
+        private static string NormalizeCode(string input)
+        {
+            return input.Trim().ToUpperInvariant();
+        }
+
+        private static Customer GetCustomer(int customerId)
+        {
+            var customerRepository = new CustomerRepository();
+            return customerRepository.GetById(customerId);
+        }
+
+        private static SubscriptionPlan GetPlan(string normalizedPlanCode)
+        {
+            var planRepository = new SubscriptionPlanRepository();
+            return planRepository.GetByCode(normalizedPlanCode);
+        }
+
+        private static void EnsureCustomerIsActive(Customer customer)
+        {
+            if (!customer.IsActive)
+            {
+                throw new InvalidOperationException("Inactive customers cannot renew subscriptions");
             }
         }
     }

@@ -35,33 +35,11 @@ namespace LegacyRenewalApp
             decimal supportFee = CalculateSupportFee(includePremiumSupport, normalizedPlanCode, ref notes);
             decimal paymentFee = CalculatePaymentFee(normalizedPaymentMethod, subtotalAfterDiscount, supportFee, ref notes);
 
-            decimal taxRate = 0.20m;
-            if (customer.Country == "Poland")
-            {
-                taxRate = 0.23m;
-            }
-            else if (customer.Country == "Germany")
-            {
-                taxRate = 0.19m;
-            }
-            else if (customer.Country == "Czech Republic")
-            {
-                taxRate = 0.21m;
-            }
-            else if (customer.Country == "Norway")
-            {
-                taxRate = 0.25m;
-            }
+            decimal taxRate = GetTaxRate(customer.Country);
 
             decimal taxBase = subtotalAfterDiscount + supportFee + paymentFee;
             decimal taxAmount = taxBase * taxRate;
-            decimal finalAmount = taxBase + taxAmount;
-
-            if (finalAmount < 500m)
-            {
-                finalAmount = 500m;
-                notes += "minimum invoice amount applied; ";
-            }
+            decimal finalAmount = CalculateFinalAmount(taxBase, taxAmount, ref notes);
 
             var invoice = new RenewalInvoice
             {
@@ -269,6 +247,43 @@ namespace LegacyRenewalApp
             }
 
             throw new ArgumentException("Unsupported payment method");
+        }
+
+        private static decimal GetTaxRate(string country)
+        {
+            if (country == "Poland")
+            {
+                return 0.23m;
+            }
+
+            if (country == "Germany")
+            {
+                return 0.19m;
+            }
+
+            if (country == "Czech Republic")
+            {
+                return 0.21m;
+            }
+
+            if (country == "Norway")
+            {
+                return 0.25m;
+            }
+
+            return 0.20m;
+        }
+
+        private static decimal CalculateFinalAmount(decimal taxBase, decimal taxAmount, ref string notes)
+        {
+            decimal finalAmount = taxBase + taxAmount;
+            if (finalAmount < 500m)
+            {
+                notes += "minimum invoice amount applied; ";
+                return 500m;
+            }
+
+            return finalAmount;
         }
     }
 }

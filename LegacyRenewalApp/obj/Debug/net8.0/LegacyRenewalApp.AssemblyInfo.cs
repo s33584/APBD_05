@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("LegacyRenewalApp")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+e2815627b5d10471cc2ac74dbf664bd6e55698a9")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+75ccff9db0c107e0842e57d609c65d64f9597010")]
 [assembly: System.Reflection.AssemblyProductAttribute("LegacyRenewalApp")]
 [assembly: System.Reflection.AssemblyTitleAttribute("LegacyRenewalApp")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
